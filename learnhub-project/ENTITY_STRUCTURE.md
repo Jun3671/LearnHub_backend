@@ -80,12 +80,42 @@ User (1) ──────< (N) Category
 - `createdAt` 필드는 `@PrePersist`로 자동 설정
 - `updatable = false`로 수정 방지
 
-## 🚀 다음 단계
+## ✅ 구현 완료
 
-1. **Repository 계층** 작성 (JpaRepository 상속)
-2. **Service 계층** 비즈니스 로직 구현
-3. **REST API** 개발
-   - 북마크 CRUD (생성, 조회, 수정, 삭제)
-   - 카테고리/태그 필터링
-   - 썸네일 S3 업로드
-4. **Spring Security + JWT** 인증 구현
+1. **Repository 계층** ✅
+   - UserRepository, CategoryRepository, BookmarkRepository, TagRepository, BookmarkTagRepository
+   - 메서드 쿼리 및 커스텀 JPQL 구현
+
+2. **Service 계층** ✅
+   - UserService, CategoryService, BookmarkService, TagService
+   - 비즈니스 로직 및 트랜잭션 관리
+
+3. **Controller 계층** ✅
+   - AuthController, UserController, CategoryController, BookmarkController, TagController
+   - REST API 엔드포인트 구현
+
+4. **Spring Security + JWT** ✅
+   - JWT 토큰 기반 인증/인가
+   - BCrypt 비밀번호 암호화
+   - Stateless 세션 관리
+
+5. **Swagger API 문서화** ✅
+   - JWT 인증 지원
+   - API 테스트 UI
+
+## 🎯 다음 개선 과제
+
+### High Priority
+1. **DTO 계층 추가** - 엔티티 직접 노출 방지
+2. **GlobalExceptionHandler** - 예외 처리 통일
+3. **테스트 코드** - 단위/통합 테스트
+
+### Medium Priority
+4. **유효성 검증** - `@Valid`, `@NotNull` 추가
+5. **페이징/정렬** - `Pageable` 지원
+6. **순환 참조 해결** - `@JsonIgnore` 적용
+
+### Low Priority
+7. **로깅** - `@Slf4j` 추가
+8. **성능 최적화** - N+1 문제 해결, 캐싱
+9. **배포** - Docker, AWS
