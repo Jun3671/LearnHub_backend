@@ -32,10 +32,9 @@ public class AuthController {
             @RequestParam String password,
             @RequestParam(required = false) String role) {
         User user = userService.register(email, password, role);
-        String token = jwtUtil.generateToken(user.getEmail());
 
         Map<String, Object> response = new HashMap<>();
-        response.put("token", token);
+        response.put("message", "회원가입 성공");
         response.put("user", user);
 
         return ResponseEntity.ok(response);
