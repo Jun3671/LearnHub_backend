@@ -3,6 +3,7 @@ package org.example.learnhubproject.service;
 import lombok.RequiredArgsConstructor;
 import org.example.learnhubproject.entity.User;
 import org.example.learnhubproject.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +15,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public User register(String email, String password, String role) {
@@ -23,7 +25,7 @@ public class UserService {
 
         User user = User.builder()
                 .email(email)
-                .password(password) // TODO: 비밀번호 암호화 필요 (BCrypt)
+                .password(passwordEncoder.encode(password)) // BCrypt 암호화
                 .role(role != null ? role : "USER")
                 .build();
 
