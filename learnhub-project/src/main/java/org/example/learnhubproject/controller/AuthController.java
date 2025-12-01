@@ -3,6 +3,10 @@ package org.example.learnhubproject.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.example.learnhubproject.dto.request.LoginRequest;
+import org.example.learnhubproject.dto.request.RegisterRequest;
+import org.example.learnhubproject.dto.response.AuthResponse;
+import org.example.learnhubproject.dto.response.UserResponse;
 import org.example.learnhubproject.entity.User;
 import org.example.learnhubproject.service.UserService;
 import org.example.learnhubproject.util.JwtUtil;
@@ -11,9 +15,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -27,33 +28,30 @@ public class AuthController {
 
     @PostMapping("/register")
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다")
-    public ResponseEntity<Map<String, Object>> register(
-            @RequestParam String email,
-            @RequestParam String password,
-            @RequestParam(required = false) String role) {
-        User user = userService.register(email, password, role);
+    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+        User user = userService.register(request.getEmail(), request.getPassword(), request.getRole());
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "회원가입 성공");
-        response.put("user", user);
+        AuthResponse response = AuthResponse.builder()
+                .message("회원가입 성공")
+                .user(UserResponse.from(user))
+                .build();
 
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
     @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인하고 JWT 토큰을 발급받습니다")
-    public ResponseEntity<Map<String, String>> login(
-            @RequestParam String email,
-            @RequestParam String password) {
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, password)
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
-        String token = jwtUtil.generateToken(email);
+        String token = jwtUtil.generateToken(request.getEmail());
 
-        Map<String, String> response = new HashMap<>();
-        response.put("token", token);
-        response.put("message", "로그인 성공");
+        AuthResponse response = AuthResponse.builder()
+                .token(token)
+                .message("로그인 성공")
+                .build();
 
         return ResponseEntity.ok(response);
     }
