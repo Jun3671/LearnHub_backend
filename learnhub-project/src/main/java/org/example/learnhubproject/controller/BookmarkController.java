@@ -4,8 +4,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.learnhubproject.entity.Bookmark;
+import org.example.learnhubproject.entity.User;
 import org.example.learnhubproject.service.BookmarkService;
+import org.example.learnhubproject.service.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,19 +21,31 @@ import java.util.List;
 public class BookmarkController {
 
     private final BookmarkService bookmarkService;
+    private final UserService userService;
 
     @PostMapping
     @Operation(summary = "북마크 생성", description = "새로운 북마크를 생성합니다 (태그 포함)")
     public ResponseEntity<Bookmark> createBookmark(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam Long categoryId,
             @RequestParam String url,
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String description,
             @RequestParam(required = false) String thumbnailUrl,
             @RequestParam(required = false) List<String> tags) {
-        Bookmark bookmark = bookmarkService.create(userId, categoryId, url, title, description, thumbnailUrl, tags);
+        // JWT에서 추출한 email(username)로 User 조회
+        User user = userService.findByEmail(userDetails.getUsername());
+        Bookmark bookmark = bookmarkService.create(user.getId(), categoryId, url, title, description, thumbnailUrl, tags);
         return ResponseEntity.ok(bookmark);
+    }
+
+    @GetMapping
+    @Operation(summary = "내 북마크 조회", description = "현재 로그인한 사용자의 모든 북마크를 조회합니다")
+    public ResponseEntity<List<Bookmark>> getMyBookmarks(@AuthenticationPrincipal UserDetails userDetails) {
+        // JWT에서 추출한 email(username)로 User 조회
+        User user = userService.findByEmail(userDetails.getUsername());
+        List<Bookmark> bookmarks = bookmarkService.findByUserId(user.getId());
+        return ResponseEntity.ok(bookmarks);
     }
 
     @GetMapping("/{id}")
@@ -37,13 +53,6 @@ public class BookmarkController {
     public ResponseEntity<Bookmark> getBookmark(@PathVariable Long id) {
         Bookmark bookmark = bookmarkService.findById(id);
         return ResponseEntity.ok(bookmark);
-    }
-
-    @GetMapping("/user/{userId}")
-    @Operation(summary = "사용자별 북마크 조회", description = "특정 사용자의 모든 북마크를 조회합니다")
-    public ResponseEntity<List<Bookmark>> getBookmarksByUser(@PathVariable Long userId) {
-        List<Bookmark> bookmarks = bookmarkService.findByUserId(userId);
-        return ResponseEntity.ok(bookmarks);
     }
 
     @GetMapping("/category/{categoryId}")
@@ -56,18 +65,22 @@ public class BookmarkController {
     @GetMapping("/search")
     @Operation(summary = "북마크 검색", description = "제목 또는 설명으로 북마크를 검색합니다")
     public ResponseEntity<List<Bookmark>> searchBookmarks(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam String keyword) {
-        List<Bookmark> bookmarks = bookmarkService.searchByKeyword(userId, keyword);
+        // JWT에서 추출한 email(username)로 User 조회
+        User user = userService.findByEmail(userDetails.getUsername());
+        List<Bookmark> bookmarks = bookmarkService.searchByKeyword(user.getId(), keyword);
         return ResponseEntity.ok(bookmarks);
     }
 
     @GetMapping("/tag/{tagId}")
     @Operation(summary = "태그별 북마크 조회", description = "특정 태그가 달린 북마크를 조회합니다")
     public ResponseEntity<List<Bookmark>> getBookmarksByTag(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long tagId) {
-        List<Bookmark> bookmarks = bookmarkService.findByTagId(userId, tagId);
+        // JWT에서 추출한 email(username)로 User 조회
+        User user = userService.findByEmail(userDetails.getUsername());
+        List<Bookmark> bookmarks = bookmarkService.findByTagId(user.getId(), tagId);
         return ResponseEntity.ok(bookmarks);
     }
 
