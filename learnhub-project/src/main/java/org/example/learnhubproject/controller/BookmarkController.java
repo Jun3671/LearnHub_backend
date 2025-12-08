@@ -89,13 +89,44 @@ public class BookmarkController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "북마크 수정", description = "북마크 정보를 수정합니다")
+    @Operation(summary = "북마크 수정", description = "북마크 정보를 수정합니다. reanalyze=true로 설정하면 URL을 AI로 재분석합니다.")
     public ResponseEntity<Bookmark> updateBookmark(
             @PathVariable Long id,
             @RequestParam(required = false) String url,
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String description,
-            @RequestParam(required = false) String thumbnailUrl) {
+            @RequestParam(required = false) String thumbnailUrl,
+            @RequestParam(required = false, defaultValue = "false") Boolean reanalyze) {
+
+        // AI 재분석이 요청되고 URL이 제공된 경우
+        if (Boolean.TRUE.equals(reanalyze) && url != null && !url.isEmpty()) {
+            try {
+                AnalysisResultDTO analysisResult = aiAnalysisService.analyzeUrl(url);
+
+                // AI 분석 결과를 우선 사용 (사용자가 직접 입력한 값이 있으면 그것을 우선)
+                String finalTitle = (title != null && !title.isEmpty()) ? title : analysisResult.getTitle();
+                String finalDescription = (description != null && !description.isEmpty()) ? description : analysisResult.getDescription();
+
+                Bookmark bookmark = bookmarkService.update(id, url, finalTitle, finalDescription, thumbnailUrl);
+
+                // AI가 제안한 태그 추가
+                if (analysisResult.getTags() != null && !analysisResult.getTags().isEmpty()) {
+                    for (String tagName : analysisResult.getTags()) {
+                        try {
+                            bookmarkService.addTag(id, tagName);
+                        } catch (Exception e) {
+                            // 태그 추가 실패는 무시 (중복 태그 등)
+                        }
+                    }
+                }
+
+                return ResponseEntity.ok(bookmark);
+            } catch (Exception e) {
+                throw new RuntimeException("AI 재분석 중 오류가 발생했습니다: " + e.getMessage());
+            }
+        }
+
+        // 일반 수정
         Bookmark bookmark = bookmarkService.update(id, url, title, description, thumbnailUrl);
         return ResponseEntity.ok(bookmark);
     }
