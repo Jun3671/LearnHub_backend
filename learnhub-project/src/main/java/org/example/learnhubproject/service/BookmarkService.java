@@ -83,13 +83,17 @@ public class BookmarkService {
     }
 
     @Transactional
-    public Bookmark update(Long id, String url, String title, String description, String thumbnailUrl) {
+    public Bookmark update(Long id, String url, String title, String description, String thumbnailUrl, Long categoryId) {
         Bookmark bookmark = findById(id);
 
         if (url != null) bookmark.setUrl(url);
         if (title != null) bookmark.setTitle(title);
         if (description != null) bookmark.setDescription(description);
         if (thumbnailUrl != null) bookmark.setS3ThumbnailUrl(thumbnailUrl);
+        if (categoryId != null) {
+            Category category = categoryService.findById(categoryId);
+            bookmark.setCategory(category);
+        }
 
         return bookmark;
     }

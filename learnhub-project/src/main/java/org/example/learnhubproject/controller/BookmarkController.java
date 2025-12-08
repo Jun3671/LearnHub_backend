@@ -96,6 +96,7 @@ public class BookmarkController {
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String description,
             @RequestParam(required = false) String thumbnailUrl,
+            @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false, defaultValue = "false") Boolean reanalyze) {
 
         // AI 재분석이 요청되고 URL이 제공된 경우
@@ -107,7 +108,7 @@ public class BookmarkController {
                 String finalTitle = (title != null && !title.isEmpty()) ? title : analysisResult.getTitle();
                 String finalDescription = (description != null && !description.isEmpty()) ? description : analysisResult.getDescription();
 
-                Bookmark bookmark = bookmarkService.update(id, url, finalTitle, finalDescription, thumbnailUrl);
+                Bookmark bookmark = bookmarkService.update(id, url, finalTitle, finalDescription, thumbnailUrl, categoryId);
 
                 // AI가 제안한 태그 추가
                 if (analysisResult.getTags() != null && !analysisResult.getTags().isEmpty()) {
@@ -127,7 +128,7 @@ public class BookmarkController {
         }
 
         // 일반 수정
-        Bookmark bookmark = bookmarkService.update(id, url, title, description, thumbnailUrl);
+        Bookmark bookmark = bookmarkService.update(id, url, title, description, thumbnailUrl, categoryId);
         return ResponseEntity.ok(bookmark);
     }
 
