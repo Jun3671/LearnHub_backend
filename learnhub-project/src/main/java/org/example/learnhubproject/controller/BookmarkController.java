@@ -3,8 +3,11 @@ package org.example.learnhubproject.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.example.learnhubproject.dto.AnalysisResultDTO;
+import org.example.learnhubproject.dto.UrlAnalysisRequest;
 import org.example.learnhubproject.entity.Bookmark;
 import org.example.learnhubproject.entity.User;
+import org.example.learnhubproject.service.AIAnalysisService;
 import org.example.learnhubproject.service.BookmarkService;
 import org.example.learnhubproject.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +25,7 @@ public class BookmarkController {
 
     private final BookmarkService bookmarkService;
     private final UserService userService;
+    private final AIAnalysisService aiAnalysisService;
 
     @PostMapping
     @Operation(summary = "북마크 생성", description = "새로운 북마크를 생성합니다 (태그 포함)")
@@ -119,5 +123,16 @@ public class BookmarkController {
     public ResponseEntity<Void> deleteBookmark(@PathVariable Long id) {
         bookmarkService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/analyze")
+    @Operation(summary = "URL 분석", description = "AI를 활용하여 URL의 콘텐츠를 분석하고 메타데이터를 추출합니다")
+    public ResponseEntity<AnalysisResultDTO> analyzeUrl(@RequestBody UrlAnalysisRequest request) {
+        try {
+            AnalysisResultDTO result = aiAnalysisService.analyzeUrl(request.getUrl());
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            throw new RuntimeException("URL 분석 중 오류가 발생했습니다: " + e.getMessage());
+        }
     }
 }
